@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.add_edit_student.AddEditStudentScreen
+import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.stand_still_test.StandStillTestScreen
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.students.StudentsScreen
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.Screen
 import com.plcoding.cleanarchitecturenoteapp.ui.theme.CleanArchitectureNoteAppTheme
@@ -51,7 +52,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) {
-                            AddEditStudentScreen(navController = navController, studentGender = "Male")
+                            AddEditStudentScreen(navController = navController)
+                        }
+                        composable(route = Screen.StandStillTestScreen.route) {
+                            StandStillTestScreen(navController = navController)
                         }
                     }
                 }

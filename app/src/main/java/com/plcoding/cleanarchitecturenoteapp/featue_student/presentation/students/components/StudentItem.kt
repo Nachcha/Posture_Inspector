@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.Student
+import com.plcoding.cleanarchitecturenoteapp.ui.theme.FemaleColor
+import com.plcoding.cleanarchitecturenoteapp.ui.theme.MaleColor
 
 @Composable
 fun StudentItem(
@@ -44,12 +47,12 @@ fun StudentItem(
 
             clipPath(clipPath){
                 drawRoundRect(
-                    color = Color(0xffe580ff),
+                    color = if (student.gender == "Male") MaleColor else FemaleColor,
                     size = size,
                     cornerRadius = CornerRadius(cornerRadius.toPx())
                 )
                 drawRoundRect(
-                    color = Color(0xffe58088),
+                    color = if (student.gender == "Male") FemaleColor else MaleColor,
                     topLeft = Offset(size.width-cutCornerSize.toPx(),-100f),
                     size = Size(cutCornerSize.toPx() + 100f, cutCornerSize.toPx() + 100f),
                     cornerRadius = CornerRadius(cornerRadius.toPx())
@@ -73,7 +76,7 @@ fun StudentItem(
             Row {
                 Column {
                     Text(
-                        text = "Age : ",
+                        text = "Age : ${student.age}, Gender : ${student.gender},",
                         style = MaterialTheme.typography.body1,
                         color = MaterialTheme.colors.onSurface,
                         maxLines = 1,
@@ -81,41 +84,7 @@ fun StudentItem(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Weight : ",
-                        style = MaterialTheme.typography.body1,
-                        color = MaterialTheme.colors.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Height : ",
-                        style = MaterialTheme.typography.body1,
-                        color = MaterialTheme.colors.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                Column {
-                    Text(
-                        text = student.age.toString(),
-                        style = MaterialTheme.typography.body1,
-                        color = MaterialTheme.colors.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = student.weight.toString(),
-                        style = MaterialTheme.typography.body1,
-                        color = MaterialTheme.colors.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = student.height.toString(),
+                        text = "Weight : ${student.weight}, Height : ${student.weight}",
                         style = MaterialTheme.typography.body1,
                         color = MaterialTheme.colors.onSurface,
                         maxLines = 1,
@@ -124,15 +93,6 @@ fun StudentItem(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
-        }
-        IconButton(
-            onClick = onDeleteClick,
-            modifier = Modifier.align(Alignment.BottomEnd),
-        ) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete student"
-            )
         }
     }
 }

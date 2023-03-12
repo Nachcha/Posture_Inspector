@@ -15,5 +15,7 @@ sealed class AddEditStudentEvent{
     data class EnteredHeight(val value: Int): AddEditStudentEvent()
     data class ChangeHeightFocus(val focusState: FocusState): AddEditStudentEvent()
 
+    data class GenderChanged(val value: String): AddEditStudentEvent()
+
     object SaveStudent: AddEditStudentEvent()
 }

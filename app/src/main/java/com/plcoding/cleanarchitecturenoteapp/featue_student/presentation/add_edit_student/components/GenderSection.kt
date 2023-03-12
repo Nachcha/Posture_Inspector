@@ -1,17 +1,18 @@
-package com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.students.components
+package com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.add_edit_student.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.Student.Companion.genderTypes
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.util.OrderType
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.util.StudentOrder
 
 @Composable
-fun OrderSection(
+fun GenderSection(
     modifier: Modifier = Modifier,
-    studentOrder: StudentOrder = StudentOrder.Name(OrderType.Ascending),
-    onOrderChanged: (StudentOrder) -> Unit
+    gender: String = "",
+    onGenderChanged: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -20,16 +21,16 @@ fun OrderSection(
             modifier = Modifier.fillMaxWidth()
         ) {
             DefaultRadioButton(
-                text = "A->Z",
-                checked = studentOrder.orderType is OrderType.Ascending,
-                onCheck = { onOrderChanged(studentOrder.copy(OrderType.Ascending)) }
+                text = "Male",
+                checked = gender == "Male",
+                onCheck = { onGenderChanged("Male") },
             )
             Spacer(modifier = Modifier.width(8.dp))
 
             DefaultRadioButton(
-                text = "Z->A",
-                checked = studentOrder.orderType is OrderType.Descending,
-                onCheck = { onOrderChanged(studentOrder.copy(OrderType.Descending)) }
+                text = "Female",
+                checked = gender == "Female",
+                onCheck = { onGenderChanged("Female") }
             )
             Spacer(modifier = Modifier.width(8.dp))
         }

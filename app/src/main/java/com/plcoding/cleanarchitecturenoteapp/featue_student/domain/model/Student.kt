@@ -5,11 +5,16 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Student(
-    val name : String,
-    val age : Int,
-    val weight : Int,
-    val height : Int,
+    val name: String,
+    val age: Int,
+    val weight: Int,
+    val height: Int,
+    val gender: String,
     @PrimaryKey val id: Int? = null
-)
+) {
+    companion object {
+        val genderTypes = listOf("Male", "Female")
+    }
+}
 
-class InvalidStudentException(message: String): Exception(message)
+class InvalidStudentException(message: String) : Exception(message)
