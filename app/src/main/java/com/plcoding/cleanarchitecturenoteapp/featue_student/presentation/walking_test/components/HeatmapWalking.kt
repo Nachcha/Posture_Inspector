@@ -48,18 +48,34 @@ fun HeatMapWalking(
                 lineTo(0f, size.height)
                 close()
             }
-            val linePath = Path()
+            val linePathL = Path()
 
-            for (i in 0 until dataObject.centerPoints.size) {
+            for (i in 0 until dataObject.centerPointsL.size) {
                 if (i == 0) {
-                    linePath.moveTo(
-                        dataObject.centerPoints[i].x.toFloat(),
-                        dataObject.centerPoints[i].y.toFloat()
+                    linePathL.moveTo(
+                        dataObject.centerPointsL[i].x.toFloat(),
+                        dataObject.centerPointsL[i].y.toFloat()
                     )
                 } else {
-                    linePath.lineTo(
-                        dataObject.centerPoints[i].x.toFloat(),
-                        dataObject.centerPoints[i].y.toFloat()
+                    linePathL.lineTo(
+                        dataObject.centerPointsL[i].x.toFloat(),
+                        dataObject.centerPointsL[i].y.toFloat()
+                    )
+                }
+            }
+
+            val linePathR = Path()
+
+            for (i in 0 until dataObject.centerPointsR.size) {
+                if (i == 0) {
+                    linePathR.moveTo(
+                        dataObject.centerPointsR[i].x.toFloat(),
+                        dataObject.centerPointsR[i].y.toFloat()
+                    )
+                } else {
+                    linePathR.lineTo(
+                        dataObject.centerPointsR[i].x.toFloat(),
+                        dataObject.centerPointsR[i].y.toFloat()
                     )
                 }
             }
@@ -106,9 +122,16 @@ fun HeatMapWalking(
                     color = Color.White,
                     colorFilter = ColorFilter.tint(Color.White),
                 )
-                
+
                 drawPath(
-                    path = linePath,
+                    path = linePathL,
+                    color = Color.Red,
+                    alpha = 1f,
+                    style = Stroke(width = 2.dp.toPx())
+                )
+
+                drawPath(
+                    path = linePathR,
                     color = Color.Red,
                     alpha = 1f,
                     style = Stroke(width = 2.dp.toPx())

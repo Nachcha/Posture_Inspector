@@ -5,5 +5,6 @@ import android.graphics.PointF
 data class HeatMapDataObjectWalking(
     val sensorL: Array<Float>,
     val sensorR: Array<Float>,
-    val centerPoints: List<PointF>,
+    val centerPointsL: List<PointF>,
+    val centerPointsR: List<PointF>,
 )

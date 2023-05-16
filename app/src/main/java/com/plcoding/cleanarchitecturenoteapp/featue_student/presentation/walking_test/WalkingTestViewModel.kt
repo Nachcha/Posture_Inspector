@@ -57,7 +57,7 @@ class WalkingTestViewModel @Inject constructor(
     val sensorR: State<Array<Float>> = _sensorR
 
     private val _currentRecord =
-        mutableStateOf(HeatMapDataObjectWalking(sensorL.value, sensorR.value, emptyList()))
+        mutableStateOf(HeatMapDataObjectWalking(sensorL.value, sensorR.value, emptyList(), emptyList()))
     val currentRecord: State<HeatMapDataObjectWalking> = _currentRecord
 
     private val _message = mutableStateOf("")
@@ -341,23 +341,37 @@ class WalkingTestViewModel @Inject constructor(
                         newRecord
                     )
 
-                    var centerTmp = calculateWeightedCenter(sensorL.value, sensorR.value)
-                    var centerPointsTmp = currentRecord.value.centerPoints
+                    var centerTmpL = calculateWeightedCenterL(sensorL.value)
+                    var centerPointsTmpL = currentRecord.value.centerPointsL
 
-                    centerPointsTmp = if (centerTmp != null) {
-                        if (!centerTmp.x.isNaN() && !centerTmp.y.isNaN()) {
-                            centerPointsTmp.plus(centerTmp)
+                    var centerTmpR = calculateWeightedCenterR(sensorL.value)
+                    var centerPointsTmpR = currentRecord.value.centerPointsR
+
+                    centerPointsTmpL = if (centerTmpL != null) {
+                        if (!centerTmpL.x.isNaN() && !centerTmpL.y.isNaN()) {
+                            centerPointsTmpL.plus(centerTmpL)
                         } else {
-                            centerPointsTmp
+                            centerPointsTmpL
                         }
                     } else {
-                        centerPointsTmp
+                        centerPointsTmpL
                     }
+                    centerPointsTmpR = if (centerTmpR != null) {
+                        if (!centerTmpR.x.isNaN() && !centerTmpR.y.isNaN()) {
+                            centerPointsTmpR.plus(centerTmpR)
+                        } else {
+                            centerPointsTmpR
+                        }
+                    } else {
+                        centerPointsTmpR
+                    }
+
                     viewModelScope.launch {
                         _currentRecord.value = currentRecord.value.copy(
                             sensorL = sensorL.value,
                             sensorR = sensorR.value,
-                            centerPoints = centerPointsTmp
+                            centerPointsL = centerPointsTmpL,
+                            centerPointsR = centerPointsTmpR,
                         )
                     }
                     if (timerCount.value == 0) {
@@ -372,7 +386,8 @@ class WalkingTestViewModel @Inject constructor(
                         _currentRecord.value = currentRecord.value.copy(
                             sensorL = sensorL.value,
                             sensorR = sensorR.value,
-                            centerPoints = currentRecord.value.centerPoints
+                            centerPointsL = currentRecord.value.centerPointsL,
+                            centerPointsR = currentRecord.value.centerPointsR,
                         )
                     }
                 }
@@ -392,7 +407,7 @@ class WalkingTestViewModel @Inject constructor(
 
     // region Replay Controls
     private fun startReplay() {
-        if(replayIndex <= 0) {
+        if (replayIndex <= 0) {
             viewModelScope.launch {
                 _timerCount.value = 0
                 _maxTimerCount.value = 10
@@ -463,26 +478,40 @@ class WalkingTestViewModel @Inject constructor(
                     state.value.walkingDataList[replayIndex].r15.toFloat()
                 )
 
-                var centerTmp = calculateWeightedCenter(sensorL.value, sensorR.value)
-                var centerPointsTmp = currentRecord.value.centerPoints
+                var centerTmpL = calculateWeightedCenterL(sensorL.value)
+                var centerPointsTmpL = currentRecord.value.centerPointsL
 
-                centerPointsTmp = if (centerTmp != null) {
-                    if (!centerTmp.x.isNaN() && !centerTmp.y.isNaN()) {
-                        centerPointsTmp.plus(centerTmp)
+                var centerTmpR = calculateWeightedCenterR(sensorL.value)
+                var centerPointsTmpR = currentRecord.value.centerPointsR
+
+                centerPointsTmpL = if (centerTmpL != null) {
+                    if (!centerTmpL.x.isNaN() && !centerTmpL.y.isNaN()) {
+                        centerPointsTmpL.plus(centerTmpL)
                     } else {
-                        centerPointsTmp
+                        centerPointsTmpL
                     }
                 } else {
-                    centerPointsTmp
+                    centerPointsTmpL
                 }
+                centerPointsTmpR = if (centerTmpR != null) {
+                    if (!centerTmpR.x.isNaN() && !centerTmpR.y.isNaN()) {
+                        centerPointsTmpR.plus(centerTmpR)
+                    } else {
+                        centerPointsTmpR
+                    }
+                } else {
+                    centerPointsTmpR
+                }
+
                 viewModelScope.launch {
                     _currentRecord.value = currentRecord.value.copy(
                         sensorL = sensorL.value,
                         sensorR = sensorR.value,
-                        centerPoints = centerPointsTmp
+                        centerPointsL = centerPointsTmpL,
+                        centerPointsR = centerPointsTmpR,
                     )
                 }
-                if (replayIndex >= state.value.walkingDataList.size -1) {
+                if (replayIndex >= state.value.walkingDataList.size - 1) {
                     stopTimerReplay()
                     deciSecondCount = 0
                     replayIndex = 0
@@ -557,7 +586,7 @@ class WalkingTestViewModel @Inject constructor(
     // endregion
 
     // region Calculations
-    private fun calculateWeightedCenter(valuesL: Array<Float>, valuesR: Array<Float>): PointF? {
+    private fun calculateWeightedCenterL(valuesL: Array<Float>): PointF? {
 //        require(points.size == weights.size) { "Points and weights arrays must have the same size" }
 
         var totalX = 0f
@@ -572,6 +601,19 @@ class WalkingTestViewModel @Inject constructor(
             totalY += point.y * weight
             totalWeight += weight
         }
+
+        val centerX = totalX / totalWeight
+        val centerY = totalY / totalWeight
+
+        return PointF(centerX, centerY)
+    }
+
+    private fun calculateWeightedCenterR(valuesR: Array<Float>): PointF? {
+//        require(points.size == weights.size) { "Points and weights arrays must have the same size" }
+
+        var totalX = 0f
+        var totalY = 0f
+        var totalWeight = 0f
 
         for (i in PointsR.indices) {
             val point = PointsR[i]
