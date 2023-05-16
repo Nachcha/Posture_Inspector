@@ -89,4 +89,15 @@ object AppModule {
             getStandStillDataList = GetStandStillDataList(repository),
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideWalkingDataUseCases(repository: WalkingDataRepository): WalkingUseCases {
+        return WalkingUseCases(
+            addWalkingData = AddWalkingData(repository),
+            addWalkingDataList = AddWalkingDataList(repository),
+            deleteWalkingData = DeleteWalkingData(repository),
+            getWalkingDataList = GetWalkingDataList(repository),
+        )
+    }
 }

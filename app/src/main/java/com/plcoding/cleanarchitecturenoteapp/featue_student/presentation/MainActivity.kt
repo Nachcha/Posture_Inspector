@@ -14,6 +14,7 @@ import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.add_edi
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.stand_still_test.StandStillTestScreen
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.students.StudentsScreen
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.Screen
+import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.walking_test.WalkingTestScreen
 import com.plcoding.cleanarchitecturenoteapp.ui.theme.CleanArchitectureNoteAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -85,6 +86,38 @@ class MainActivity : ComponentActivity() {
                             )
                         ) {
                             StandStillTestScreen(navController = navController)
+                        }
+                        composable(
+                            route = Screen.WalkingTestScreen.route +
+                                    "?reportId={reportId}&dateTime={dateTime}&studentId={studentId}&reportType={reportType}",
+                            arguments = listOf(
+                                navArgument(
+                                    name = "reportId"
+                                ) {
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                },
+                                navArgument(
+                                    name = "dateTime"
+                                ) {
+                                    type = NavType.StringType
+                                    defaultValue = ""
+                                },
+                                navArgument(
+                                    name = "studentId"
+                                ) {
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                },
+                                navArgument(
+                                    name = "reportType"
+                                ) {
+                                    type = NavType.StringType
+                                    defaultValue = ""
+                                },
+                            )
+                        ) {
+                            WalkingTestScreen(navController = navController)
                         }
                     }
                 }

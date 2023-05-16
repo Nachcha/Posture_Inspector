@@ -161,7 +161,7 @@ fun AddViewDeleteReportSection(
                     ReportCard(
                         modifier = Modifier.clickable {
                             navController.navigate(
-                                Screen.StandStillTestScreen.route +
+                                Screen.WalkingTestScreen.route +
                                         "?reportId=${report.id}&dateTime=${report.date_time}&studentId=${report.student_id}&reportType=${report.report_type}"
                             )
                         },
