@@ -90,24 +90,14 @@ fun StudentsScreen(
                             .fillMaxWidth()
                             .clickable {
                                 navController.navigate(
-                                    Screen.AddEditStudentScreen.route+
+                                    Screen.AddEditStudentScreen.route +
                                             "?studentId=${student.id}"
                                 )
-                            },
-                        onDeleteClick = {
-                            viewModel.onEvent(StudentsEvent.DeleteStudent(student))
-                            scope.launch {
-                                var result = scaffoldState.snackbarHostState.showSnackbar(
-                                    message = "Note deleted",
-                                    actionLabel = "Undo"
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    viewModel.onEvent(StudentsEvent.RestoreStudent)
-                                }
                             }
-                        }
                     )
-                    Spacer(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp))
+                    Spacer(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp))
                 }
             }
         }

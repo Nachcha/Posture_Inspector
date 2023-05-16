@@ -74,6 +74,7 @@ object AppModule {
         return ReportUseCases(
             getReportsByType = GetReportsByType(repository),
             addReport = AddReport(repository),
+            updateReport = UpdateReport(repository),
             deleteReport = DeleteReport(repository)
         )
     }
@@ -83,8 +84,9 @@ object AppModule {
     fun provideStandStillDataUseCases(repository: StandStillDataRepository): StandStillUseCases {
         return StandStillUseCases(
             addStandStillData = AddStandStillData(repository),
+            addStandStillDataList = AddStandStillDataList(repository),
             deleteStandStillData = DeleteStandStillData(repository),
-            getStandStillDataList = GetStandStillDataList(repository)
+            getStandStillDataList = GetStandStillDataList(repository),
         )
     }
 }

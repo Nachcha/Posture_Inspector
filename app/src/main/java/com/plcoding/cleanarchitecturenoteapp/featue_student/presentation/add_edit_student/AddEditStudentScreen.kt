@@ -75,7 +75,8 @@ fun AddEditStudentScreen(
                 AddViewDeleteReportSection(
                     modifier = Modifier,
                     student = student,
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    navController = navController
                 )
             }
         }

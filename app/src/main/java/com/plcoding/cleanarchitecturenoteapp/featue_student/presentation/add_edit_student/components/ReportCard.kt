@@ -25,13 +25,14 @@ import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.ge
 
 @Composable
 fun ReportCard(
+    modifier: Modifier,
     report: Report? = null,
     onClickDelete: () -> Unit,
     addEditStudentViewModel: AddEditStudentViewModel = hiltViewModel()
 ) {
     val studentGender = addEditStudentViewModel.studentGender.value
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(60.dp)
             .padding(vertical = 4.dp)
@@ -48,7 +49,11 @@ fun ReportCard(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "New", style = MaterialTheme.typography.h5)
+            report?.date_time?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.h5)
+            }
 
             IconButton(
                 onClick = onClickDelete,

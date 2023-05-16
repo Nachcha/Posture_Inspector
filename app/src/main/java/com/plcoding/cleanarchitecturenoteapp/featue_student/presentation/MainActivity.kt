@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(
                             route = Screen.AddEditStudentScreen.route +
-                                    "?studentId={studentId}&studentGender={studentGender",
+                                    "?studentId={studentId}&studentGender={studentGender}",
                             arguments = listOf(
                                 navArgument(
                                     name = "studentId"
@@ -54,7 +54,36 @@ class MainActivity : ComponentActivity() {
                         ) {
                             AddEditStudentScreen(navController = navController)
                         }
-                        composable(route = Screen.StandStillTestScreen.route) {
+                        composable(
+                            route = Screen.StandStillTestScreen.route +
+                                    "?reportId={reportId}&dateTime={dateTime}&studentId={studentId}&reportType={reportType}",
+                            arguments = listOf(
+                                navArgument(
+                                    name = "reportId"
+                                ) {
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                },
+                                navArgument(
+                                    name = "dateTime"
+                                ) {
+                                    type = NavType.StringType
+                                    defaultValue = ""
+                                },
+                                navArgument(
+                                    name = "studentId"
+                                ) {
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                },
+                                navArgument(
+                                    name = "reportType"
+                                ) {
+                                    type = NavType.StringType
+                                    defaultValue = ""
+                                },
+                            )
+                        ) {
                             StandStillTestScreen(navController = navController)
                         }
                     }
@@ -63,3 +92,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

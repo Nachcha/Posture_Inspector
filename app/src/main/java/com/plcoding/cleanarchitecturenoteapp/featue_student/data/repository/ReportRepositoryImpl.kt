@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 class ReportRepositoryImpl(
     private val dao: ReportDao
 ): ReportRepository {
-    override fun getReportsByType(reportType: String): Flow<List<Report>> {
-        return dao.getReportsByType(reportType)
+    override fun getReportsByType(reportType: String, studentId: Int): Flow<List<Report>> {
+        return dao.getReportsByType(reportType,studentId)
     }
 
     override suspend fun getReportById(id: Int): Report? {
@@ -18,6 +18,10 @@ class ReportRepositoryImpl(
 
     override suspend fun insertReportData(report: Report) {
         return dao.insertReport(report)
+    }
+
+    override suspend fun updateReportData(report: Report) {
+        return dao.updateReport(report)
     }
 
     override suspend fun deleteReport(report: Report) {

@@ -1,6 +1,8 @@
 package com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.add_edit_student.components
 
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,15 +20,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.Report
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.Student
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.add_edit_student.AddDeleteReportsEvent
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.add_edit_student.AddEditStudentViewModel
+import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.Screen
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.getBackgroundColor
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.getInverseBackgroundColor
 
 @Composable
 fun AddViewDeleteReportSection(
+    navController: NavController,
     modifier: Modifier,
     student: Student,
     viewModel: AddEditStudentViewModel = hiltViewModel()
@@ -80,10 +85,17 @@ fun AddViewDeleteReportSection(
                 }
             }
             LazyColumn(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 items(state.balanceReports) { report ->
+                    Log.d("ReportIDChecking", "AddViewDeleteReportSection: ${report.id}")
                     ReportCard(
+                        modifier = Modifier.clickable {
+                            navController.navigate(
+                                Screen.StandStillTestScreen.route +
+                                        "?reportId=${report.id}&dateTime=${report.date_time}&studentId=${report.student_id}&reportType=${report.report_type}"
+                            )
+                        },
                         report = report,
                         onClickDelete = {
                             viewModel.onReportEvent(
@@ -147,6 +159,12 @@ fun AddViewDeleteReportSection(
             ) {
                 items(state.walkingReports) { report ->
                     ReportCard(
+                        modifier = Modifier.clickable {
+                            navController.navigate(
+                                Screen.StandStillTestScreen.route +
+                                        "?reportId=${report.id}&dateTime=${report.date_time}&studentId=${report.student_id}&reportType=${report.report_type}"
+                            )
+                        },
                         report = report,
                         onClickDelete = {
                             viewModel.onReportEvent(

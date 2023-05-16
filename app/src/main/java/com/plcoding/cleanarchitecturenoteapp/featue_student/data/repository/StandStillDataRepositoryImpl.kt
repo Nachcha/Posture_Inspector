@@ -17,6 +17,10 @@ class StandStillDataRepositoryImpl(
         return dao.insertStandStillData(standStillData)
     }
 
+    override suspend fun insertStandStillDataList(standStillDataList: List<StandStillData>) {
+        return dao.insertStandStillDataList(standStillDataList)
+    }
+
     override suspend fun deleteStandStillData(studentId: Int) {
         return dao.deleteStandStillData(studentId)
     }

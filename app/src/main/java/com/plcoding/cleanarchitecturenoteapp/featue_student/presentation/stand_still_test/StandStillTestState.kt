@@ -4,5 +4,8 @@ import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.StandSt
 
 data class StandStillTestState(
     val standStillDataList: List<StandStillData> = emptyList(),
-    val studentId: Int? = null,
+    val reportId: Int? = null,
+    val dateTime: String? = "",
+    val studentId: Int = -1,
+    val reportType: String = "",
 )

@@ -1,5 +1,6 @@
 package com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.add_edit_student
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -8,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.InvalidStudentException
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.Student
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.use_case.ReportUseCases
+import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.use_case.StandStillUseCases
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.use_case.StudentUseCases
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.util.StudentOrder
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.students.StudentsState
@@ -24,8 +26,9 @@ import javax.inject.Inject
 class AddEditStudentViewModel @Inject constructor(
     private val studentUseCases: StudentUseCases,
     private val reportUseCases: ReportUseCases,
+    private val standStillUseCases: StandStillUseCases,
     savedStateHandle: SavedStateHandle
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = mutableStateOf(ReportDataState())
     val state: State<ReportDataState> = _state
@@ -33,36 +36,46 @@ class AddEditStudentViewModel @Inject constructor(
     private var getBalanceReportsJob: Job? = null
     private var getWalkingReportsJob: Job? = null
 
-    private val _studentName = mutableStateOf(StudentTextFieldState(
-        hint = "Name"
-    ))
+    private val _studentName = mutableStateOf(
+        StudentTextFieldState(
+            hint = "Name"
+        )
+    )
     val studentName: State<StudentTextFieldState> = _studentName
 
-    private val _studentAge = mutableStateOf(StudentIntFeildState(
-        hint = "Age"
-    ))
+    private val _studentAge = mutableStateOf(
+        StudentIntFeildState(
+            hint = "Age"
+        )
+    )
     val studentAge: State<StudentIntFeildState> = _studentAge
 
-    private val _studentWeight = mutableStateOf(StudentIntFeildState(
-        hint = "Weight"
-    ))
+    private val _studentWeight = mutableStateOf(
+        StudentIntFeildState(
+            hint = "Weight"
+        )
+    )
     val studentWeight: State<StudentIntFeildState> = _studentWeight
 
-    private val _studentHeight = mutableStateOf(StudentIntFeildState(
-        hint = "Height"
-    ))
+    private val _studentHeight = mutableStateOf(
+        StudentIntFeildState(
+            hint = "Height"
+        )
+    )
     val studentHeight: State<StudentIntFeildState> = _studentHeight
 
     private val _studentGender = mutableStateOf("Male")
     val studentGender: State<String> = _studentGender
 
-    private val _student = mutableStateOf(Student(
-        name = "",
-        age = 0,
-        weight = 0,
-        height = 0,
-        gender = ""
-    ))
+    private val _student = mutableStateOf(
+        Student(
+            name = "",
+            age = 0,
+            weight = 0,
+            height = 0,
+            gender = ""
+        )
+    )
     val student: State<Student> = _student
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
@@ -72,38 +85,38 @@ class AddEditStudentViewModel @Inject constructor(
 
     init {
         savedStateHandle.get<Int>("studentId")?.let { studentId ->
-            if (studentId != -1){
+            if (studentId != -1) {
                 viewModelScope.launch {
                     studentUseCases.getStudent(studentId)?.also { student ->
                         _student.value = student
                         currentStudentId = student.id
                         _studentName.value = studentName.value.copy(
                             text = student.name,
-                            isHintVisible =  false
+                            isHintVisible = false
                         )
                         _studentAge.value = studentAge.value.copy(
                             value = student.age,
-                            isHintVisible =  false
+                            isHintVisible = false
                         )
                         _studentWeight.value = studentWeight.value.copy(
                             value = student.weight,
-                            isHintVisible =  false
+                            isHintVisible = false
                         )
                         _studentHeight.value = studentHeight.value.copy(
                             value = student.height,
-                            isHintVisible =  false
+                            isHintVisible = false
                         )
                         _studentGender.value = student.gender
+                        getBalanceReports()
+                        getWalkingReports()
                     }
                 }
             }
         }
-        getBalanceReports()
-        getWalkingReports()
     }
 
-    fun onEvent(event: AddEditStudentEvent){
-        when(event){
+    fun onEvent(event: AddEditStudentEvent) {
+        when (event) {
             is AddEditStudentEvent.EnteredName -> {
                 _studentName.value = studentName.value.copy(
                     text = event.value
@@ -161,7 +174,7 @@ class AddEditStudentViewModel @Inject constructor(
                             )
                         )
                         _eventFlow.emit(UiEvent.SaveStudent)
-                    } catch (e: InvalidStudentException){
+                    } catch (e: InvalidStudentException) {
                         _eventFlow.emit(
                             UiEvent.ShowSnackBar(
                                 message = e.message ?: "Couldn't save student."
@@ -180,7 +193,10 @@ class AddEditStudentViewModel @Inject constructor(
         when (event) {
             is AddDeleteReportsEvent.DeleteReport -> {
                 viewModelScope.launch {
-                    reportUseCases.deleteReport(event.report)
+                    if (event.report.id!! > 0) {
+                        standStillUseCases.deleteStandStillData(event.report.id)
+                        reportUseCases.deleteReport(event.report)
+                    }
                 }
                 if (event.report.report_type == "Balance") {
                     getBalanceReports()
@@ -212,29 +228,33 @@ class AddEditStudentViewModel @Inject constructor(
     }
 
     private fun getBalanceReports() {
-        getBalanceReportsJob?.cancel()
-        getBalanceReportsJob = reportUseCases.getReportsByType("Balance")
-            .onEach { b_reports ->
-                _state.value = state.value.copy(
-                    balanceReports = b_reports,
-                )
-            }
-            .launchIn(viewModelScope)
+        if (student.value.id != null) {
+            getBalanceReportsJob?.cancel()
+            getBalanceReportsJob = reportUseCases.getReportsByType("Balance", student.value.id!!)
+                .onEach { b_reports ->
+                    _state.value = state.value.copy(
+                        balanceReports = b_reports,
+                    )
+                }
+                .launchIn(viewModelScope)
+        }
     }
 
     private fun getWalkingReports() {
-        getWalkingReportsJob?.cancel()
-        getWalkingReportsJob = reportUseCases.getReportsByType("Walking")
-            .onEach { w_reports ->
-                _state.value = state.value.copy(
-                    walkingReports = w_reports,
-                )
-            }
-            .launchIn(viewModelScope)
+        if (student.value.id != null) {
+            getWalkingReportsJob?.cancel()
+            getWalkingReportsJob = reportUseCases.getReportsByType("Walking", student.value.id!!)
+                .onEach { w_reports ->
+                    _state.value = state.value.copy(
+                        walkingReports = w_reports,
+                    )
+                }
+                .launchIn(viewModelScope)
+        }
     }
 
     sealed class UiEvent {
-        data class ShowSnackBar(val message: String): UiEvent()
-        object SaveStudent: UiEvent()
+        data class ShowSnackBar(val message: String) : UiEvent()
+        object SaveStudent : UiEvent()
     }
 }

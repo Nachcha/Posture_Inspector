@@ -9,11 +9,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GetReportsByType(
-    private val repository: ReportRepository
+    private val repository: ReportRepository,
 ) {
     operator fun invoke(
-        reportType: String = "Balance"
+        reportType: String = "Balance",
+        studentId: Int = 0,
     ): Flow<List<Report>> {
-        return repository.getReportsByType(reportType)
+        return repository.getReportsByType(reportType,studentId)
     }
 }

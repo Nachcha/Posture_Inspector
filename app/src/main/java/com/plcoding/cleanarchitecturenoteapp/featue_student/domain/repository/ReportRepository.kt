@@ -7,11 +7,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface ReportRepository {
 
-    fun getReportsByType(reportType: String): Flow<List<Report>>
+    fun getReportsByType(reportType: String, studentId: Int): Flow<List<Report>>
 
     suspend fun getReportById(id: Int): Report?
 
     suspend fun insertReportData(report: Report)
+
+    suspend fun updateReportData(report: Report)
 
     suspend fun deleteReport(report: Report)
 }

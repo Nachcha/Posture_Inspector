@@ -9,5 +9,7 @@ interface StandStillDataRepository {
 
     suspend fun insertStandStillData(standStillData: StandStillData)
 
+    suspend fun insertStandStillDataList(standStillDataList: List<StandStillData>)
+
     suspend fun deleteStandStillData(reportId: Int)
 }
