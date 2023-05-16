@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewModelScope
 import com.plcoding.cleanarchitecturenoteapp.core.servises.BluetoothService
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.InvalidStandStillDataException
@@ -16,10 +15,7 @@ import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.model.StandSt
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.use_case.ReportUseCases
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.use_case.StandStillUseCases
 import com.plcoding.cleanarchitecturenoteapp.featue_student.domain.util.StandStillDataDTO
-import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.stand_still_test.utils.HeatMapDataObject
-import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.stand_still_test.utils.message_rd1
-import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.stand_still_test.utils.message_rd2
-import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.stand_still_test.utils.message_rd3
+import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.stand_still_test.utils.*
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.PointsL
 import com.plcoding.cleanarchitecturenoteapp.featue_student.presentation.util.PointsR
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +27,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
-import kotlin.system.measureTimeMillis
 
 @HiltViewModel
 class StandStillTestViewModel @Inject constructor(
@@ -45,7 +40,6 @@ class StandStillTestViewModel @Inject constructor(
     val state: State<StandStillTestState> = _state
 
     private var getStandStillDataListJob: Job? = null
-    private var standStillDataRow: StandStillData? = null
 
     private val _timerCount = mutableStateOf(0)
     val timerCount: State<Int> = _timerCount
@@ -65,10 +59,6 @@ class StandStillTestViewModel @Inject constructor(
         mutableStateOf(HeatMapDataObject(sensorL.value, sensorR.value, emptyList()))
     val currentRecord: State<HeatMapDataObject> = _currentRecord
 
-//    private var records: Array<StandStillDataDTO> = emptyArray()
-
-    private var records = mutableListOf<StandStillDataDTO>()
-
     private val _message = mutableStateOf("")
     val message: State<String> = _message
 
@@ -78,12 +68,21 @@ class StandStillTestViewModel @Inject constructor(
     private val _saveButtonEnabled = mutableStateOf(false)
     val saveButtonEnabled: State<Boolean> = _saveButtonEnabled
 
-//    private val _reportId = mutableStateOf(-1)
-//    val reportId: State<Int> = _reportId
+    private val _saveButtonText = mutableStateOf("Save")
+    val saveButtonText: State<String> = _saveButtonText
 
+    private val _startButtonText = mutableStateOf("Start")
+    val startButtonText: State<String> = _startButtonText
+
+    private val _screenMode = mutableStateOf(0)
+    val screenMode: State<Int> = _screenMode
+
+    private var records = mutableListOf<StandStillDataDTO>()
     private lateinit var timer: Timer
     private var deciSecondCount: Int = 0
+    private var replayIndex: Int = 0
 
+    // region Bluetooth
     private val bluetoothSerial = BluetoothService(object : BluetoothService.Listener {
         override fun onMessageReceived(device: String, message: String) {
             // Handle incoming messages from the ESP32 devices
@@ -123,10 +122,11 @@ class StandStillTestViewModel @Inject constructor(
             Log.e("BlueTooth", errorMessage)
         }
     }, context)
+    // endregion
 
     init {
         savedStateHandle.get<Int>("reportId")?.let { reportId ->
-            Log.d("ReportData", "reportId: $reportId")
+//            Log.d("ReportData", "reportId: $reportId")
             if (reportId != -1) {
                 _state.value = state.value.copy(
                     reportId = reportId,
@@ -136,7 +136,7 @@ class StandStillTestViewModel @Inject constructor(
         }
 
         savedStateHandle.get<String>("dateTime")?.let { dateTime ->
-            Log.d("ReportData", "reportId: $dateTime")
+//            Log.d("ReportData", "reportId: $dateTime")
             if (dateTime != "") {
                 _state.value = state.value.copy(
                     dateTime = dateTime,
@@ -145,7 +145,7 @@ class StandStillTestViewModel @Inject constructor(
         }
 
         savedStateHandle.get<Int>("studentId")?.let { studentId ->
-            Log.d("ReportData", "reportId: $studentId")
+//            Log.d("ReportData", "reportId: $studentId")
             if (studentId != -1) {
                 _state.value = state.value.copy(
                     studentId = studentId,
@@ -154,7 +154,7 @@ class StandStillTestViewModel @Inject constructor(
         }
 
         savedStateHandle.get<String>("reportType")?.let { reportType ->
-            Log.d("ReportData", "reportId: $reportType")
+//            Log.d("ReportData", "reportId: $reportType")
             if (reportType != "") {
                 _state.value = state.value.copy(
                     reportType = reportType,
@@ -162,33 +162,48 @@ class StandStillTestViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch() {
-            _message.value = message_rd1
+        if (state.value.dateTime!!.trim() != "New") {
+            viewModelScope.launch {
+                _screenMode.value = 1
+                _saveButtonText.value = "Pause"
+                _startButtonText.value = "Play"
+                _message.value = message_rp1
+            }
+        } else {
+            viewModelScope.launch() {
+                _message.value = message_rd1
+                _screenMode.value = 0
+                _saveButtonText.value = "Save"
+                _startButtonText.value = "Start"
+            }
         }
     }
 
     fun onEvent(event: StandStillTestEvent) {
         when (event) {
-            is StandStillTestEvent.FetchData -> {
-//                getStandStillDataList(state.value.reportId)
-            }
-            is StandStillTestEvent.InsertStandStillDataRow -> {
-                viewModelScope.launch {
-                    standStillUseCases.addStandStillData(standStillDataRow ?: return@launch)
+            is StandStillTestEvent.OnStart -> {
+                if (screenMode.value > 0) {
+                    startReplay()
+                } else {
+                    startRecording()
                 }
             }
-            is StandStillTestEvent.GenerateHeatMap -> {
-
-            }
-            is StandStillTestEvent.OnStart -> {
-                startRecording()
-            }
             is StandStillTestEvent.OnSave -> {
-                saveRecordList()
+                if (screenMode.value > 0) {
+                    stopReplay()
+                } else {
+                    saveRecordList()
+                }
             }
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        stopTimerRecord()
+    }
+
+    // region Read Recorded Data
     private fun getStandStillDataList(reportId: Int?) {
         if (reportId != null) {
             getStandStillDataListJob?.cancel()
@@ -197,6 +212,7 @@ class StandStillTestViewModel @Inject constructor(
                     _state.value = state.value.copy(
                         standStillDataList = standStillDataList
                     )
+//                    Log.d("GetStandStillDataList", "getStandStillDataList: ${state.value.standStillDataList.size}}")
                 }
                 .launchIn(viewModelScope)
         } else {
@@ -206,42 +222,20 @@ class StandStillTestViewModel @Inject constructor(
             throw InvalidStandStillDataException("Something went wrong. Student ID is missing.")
         }
     }
+    // endregion
 
+    // region Record Data
     private fun startRecording() {
         bluetoothSerial.connectToDevice()
         viewModelScope.launch {
             _timerCount.value = 20
         }
-        startTimer()
+        startTimerRecord()
     }
 
     private fun stopRecording() {
         bluetoothSerial.disconnectFromDevices()
-        stopTimer()
-    }
-
-    private fun saveRecordList() {
-        recordsToStandStillDataList()
-        if (state.value.reportId != -1 && state.value.standStillDataList.isNotEmpty()) {
-            viewModelScope.launch {
-                Log.d("saveRecordList", "addStandStillDataList: Started")
-                standStillUseCases.addStandStillDataList(
-                    state.value.standStillDataList
-                )
-                Log.d("saveRecordList", "updateReport: Started")
-                val dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd:MM HH:mm"))
-                reportUseCases.updateReport(
-                    Report(
-                        id = state.value.reportId,
-                        date_time = dateTime,
-                        report_type = state.value.reportType,
-                        student_id = state.value.studentId,
-                    )
-                )
-                Log.d("saveRecordList", "completed")
-            }
-            _saveButtonEnabled.value = false
-        }
+        stopTimerRecord()
     }
 
     private fun recordsToStandStillDataList() {
@@ -291,7 +285,7 @@ class StandStillTestViewModel @Inject constructor(
         )
     }
 
-    private fun startTimer() {
+    private fun startTimerRecord() {
         _startButtonEnabled.value = false
         timer = Timer()
         viewModelScope.launch {
@@ -388,17 +382,162 @@ class StandStillTestViewModel @Inject constructor(
         timer.schedule(timerTask, 0, 100)
     }
 
-    private fun stopTimer() {
+    private fun stopTimerRecord() {
         if (::timer.isInitialized) {
             timer.cancel()
         }
     }
+    // endregion
 
-    override fun onCleared() {
-        super.onCleared()
-        stopTimer()
+    // region Replay Controls
+    private fun startReplay() {
+        if(replayIndex <= 0) {
+            viewModelScope.launch {
+                _timerCount.value = 0
+                _maxTimerCount.value = 10
+            }
+        }
+        startTimerReplay()
     }
 
+    private fun stopReplay() {
+        stopTimerReplay()
+        viewModelScope.launch {
+            _startButtonEnabled.value = true
+            _saveButtonEnabled.value = false
+        }
+    }
+
+    private fun startTimerReplay() {
+        timer = Timer()
+        viewModelScope.launch {
+            _message.value = message_rp2
+            _startButtonEnabled.value = false
+            _saveButtonEnabled.value = true
+        }
+        val timerTask = object : TimerTask() {
+            override fun run() {
+                deciSecondCount++
+                replayIndex++
+                if (deciSecondCount == 10) {
+                    deciSecondCount = 0
+                    incrementTimer()
+                }
+
+                _sensorL.value = arrayOf(
+                    state.value.standStillDataList[replayIndex].l0.toFloat(),
+                    state.value.standStillDataList[replayIndex].l1.toFloat(),
+                    state.value.standStillDataList[replayIndex].l2.toFloat(),
+                    state.value.standStillDataList[replayIndex].l3.toFloat(),
+                    state.value.standStillDataList[replayIndex].l4.toFloat(),
+                    state.value.standStillDataList[replayIndex].l5.toFloat(),
+                    state.value.standStillDataList[replayIndex].l6.toFloat(),
+                    state.value.standStillDataList[replayIndex].l7.toFloat(),
+                    state.value.standStillDataList[replayIndex].l8.toFloat(),
+                    state.value.standStillDataList[replayIndex].l9.toFloat(),
+                    state.value.standStillDataList[replayIndex].l10.toFloat(),
+                    state.value.standStillDataList[replayIndex].l11.toFloat(),
+                    state.value.standStillDataList[replayIndex].l12.toFloat(),
+                    state.value.standStillDataList[replayIndex].l13.toFloat(),
+                    state.value.standStillDataList[replayIndex].l14.toFloat(),
+                    state.value.standStillDataList[replayIndex].l15.toFloat()
+                )
+
+                _sensorR.value = arrayOf(
+                    state.value.standStillDataList[replayIndex].r0.toFloat(),
+                    state.value.standStillDataList[replayIndex].r1.toFloat(),
+                    state.value.standStillDataList[replayIndex].r2.toFloat(),
+                    state.value.standStillDataList[replayIndex].r3.toFloat(),
+                    state.value.standStillDataList[replayIndex].r4.toFloat(),
+                    state.value.standStillDataList[replayIndex].r5.toFloat(),
+                    state.value.standStillDataList[replayIndex].r6.toFloat(),
+                    state.value.standStillDataList[replayIndex].r7.toFloat(),
+                    state.value.standStillDataList[replayIndex].r8.toFloat(),
+                    state.value.standStillDataList[replayIndex].r9.toFloat(),
+                    state.value.standStillDataList[replayIndex].r10.toFloat(),
+                    state.value.standStillDataList[replayIndex].r11.toFloat(),
+                    state.value.standStillDataList[replayIndex].r12.toFloat(),
+                    state.value.standStillDataList[replayIndex].r13.toFloat(),
+                    state.value.standStillDataList[replayIndex].r14.toFloat(),
+                    state.value.standStillDataList[replayIndex].r15.toFloat()
+                )
+
+                var centerTmp = calculateWeightedCenter(sensorL.value, sensorR.value)
+                var centerPointsTmp = currentRecord.value.centerPoints
+
+                centerPointsTmp = if (centerTmp != null) {
+                    if (!centerTmp.x.isNaN() && !centerTmp.y.isNaN()) {
+                        centerPointsTmp.plus(centerTmp)
+                    } else {
+                        centerPointsTmp
+                    }
+                } else {
+                    centerPointsTmp
+                }
+                viewModelScope.launch {
+                    _currentRecord.value = currentRecord.value.copy(
+                        sensorL = sensorL.value,
+                        sensorR = sensorR.value,
+                        centerPoints = centerPointsTmp
+                    )
+                }
+                if (replayIndex >= state.value.standStillDataList.size -1) {
+                    stopTimerReplay()
+                    deciSecondCount = 0
+                    replayIndex = 0
+                    viewModelScope.launch {
+                        _saveButtonEnabled.value = false
+                        _startButtonEnabled.value = true
+                    }
+                }
+            }
+        }
+
+        // Start the timer after a delay of 1 second and repeat every 2 seconds
+        timer.schedule(timerTask, 0, 100)
+    }
+
+    private fun stopTimerReplay() {
+        if (::timer.isInitialized) {
+            timer.cancel()
+            viewModelScope.launch {
+                _message.value = message_rp1
+            }
+        }
+    }
+    // endregion
+
+    // region Save Data
+    private fun saveRecordList() {
+        recordsToStandStillDataList()
+        if (state.value.reportId != -1 && state.value.standStillDataList.isNotEmpty()) {
+            viewModelScope.launch {
+                standStillUseCases.addStandStillDataList(
+                    state.value.standStillDataList
+                )
+                val dateTime =
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd:MM HH:mm"))
+                reportUseCases.updateReport(
+                    Report(
+                        id = state.value.reportId,
+                        date_time = dateTime,
+                        report_type = state.value.reportType,
+                        student_id = state.value.studentId,
+                    )
+                )
+                _message.value = message_rp1
+            }
+            _saveButtonEnabled.value = false
+            _startButtonEnabled.value = true
+            _screenMode.value = 1
+            _saveButtonText.value = "Pause"
+            _startButtonText.value = "Play"
+            _message.value = message_rp1
+        }
+    }
+    // endregion
+
+    // region Timer Controls
     private fun decrementTimer() {
         if (timerCount.value > 0) {
             viewModelScope.launch {
@@ -414,7 +553,9 @@ class StandStillTestViewModel @Inject constructor(
             }
         }
     }
+    // endregion
 
+    // region Calculations
     private fun calculateWeightedCenter(valuesL: Array<Float>, valuesR: Array<Float>): PointF? {
 //        require(points.size == weights.size) { "Points and weights arrays must have the same size" }
 
@@ -445,4 +586,5 @@ class StandStillTestViewModel @Inject constructor(
 
         return PointF(centerX, centerY)
     }
+    // endregion
 }

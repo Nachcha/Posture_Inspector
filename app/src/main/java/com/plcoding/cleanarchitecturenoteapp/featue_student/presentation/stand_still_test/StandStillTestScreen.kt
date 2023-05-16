@@ -73,7 +73,7 @@ fun StandStillTestScreen(
                     onClick = {
                         viewModel.onEvent(StandStillTestEvent.OnStart)
                     }) {
-                    Text(style = TextStyle(color = Color.Black), text = "Start")
+                    Text(style = TextStyle(color = Color.Black), text = viewModel.startButtonText.value)
                 }
                 Button(
                     modifier = Modifier
@@ -83,7 +83,7 @@ fun StandStillTestScreen(
                     onClick = {
                         viewModel.onEvent(StandStillTestEvent.OnSave)
                     }) {
-                    Text(style = TextStyle(color = Color.Black), text = "Save")
+                    Text(style = TextStyle(color = Color.Black), text = viewModel.saveButtonText.value)
                 }
             }
             Row(
